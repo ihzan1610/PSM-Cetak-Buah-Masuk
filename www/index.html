@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#075b32"><title>PSM Cetak Buah Masuk</title><link rel="stylesheet" href="style.css"></head>
+<body><header><div><b>PSM SAWIT</b><small>CETAK BUAH MASUK</small></div><span>INPUT SEKALI CETAK</span></header><main>
+<section class="panel"><h3>INPUT TIMBANGAN</h3>
+<label>Pemilik<input id="owner" autocomplete="off"></label><label>Supir<input id="driver" autocomplete="off"></label>
+<div class="grid"><label>T1 (Bruto) kg<input id="w1" type="number" inputmode="decimal"></label><label>T2 (Tara) kg<input id="w2" type="number" inputmode="decimal"></label></div>
+<label>Harga / Kg (Rp)<input id="price" type="number" inputmode="numeric"></label>
+<div class="grid three"><label>Jalan / Kg<input id="fj" type="number" inputmode="numeric"></label><label>Langsir / Kg<input id="fl" type="number" inputmode="numeric"></label><label>Panen / Kg<input id="fp" type="number" inputmode="numeric"></label></div><p class="note">Transaksi hanya dipakai untuk perhitungan dan cetak. Tidak ada riwayat atau sinkronisasi.</p></section>
+<section class="panel"><h3>HASIL PERHITUNGAN</h3><div id="results"></div></section>
+<div class="buttons"><button id="clear" class="muted">Bersihkan</button><button id="preview" class="green">Pratinjau Nota</button></div>
+<section class="panel hidden" id="previewBox"><h3>PRATINJAU NOTA</h3><div id="receipt"></div><button id="print" class="green full">CETAK THERMAL VIA RAWBT</button><p class="note">Pastikan RawBT sudah terpasang dan printer telah dipilih.</p></section></main><div id="toast"></div><script src="app.js"></script></body></html>
