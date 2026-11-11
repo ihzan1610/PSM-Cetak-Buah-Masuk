@@ -22,10 +22,12 @@ jobs:
           packages: 'platform-tools'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Test calculation and no-storage rules
+      - name: Run tests
         run: npm test
       - name: Add Android platform
         run: npx cap add android
+      - name: Install RawBT native bridge
+        run: node scripts/patch-rawbt.js
       - name: Sync Android
         run: npx cap sync android
       - name: Build APK
@@ -34,7 +36,10 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
       - name: Verify APK
-        run: test -s android/app/build/outputs/apk/debug/app-debug.apk
+        run: |
+          test -s android/app/build/outputs/apk/debug/app-debug.apk
+          ls -lh android/app/build/outputs/apk/debug/app-debug.apk
+          sha256sum android/app/build/outputs/apk/debug/app-debug.apk
       - uses: actions/upload-artifact@v4
         with:
           name: PSM-CETAK-BUAH-MASUK-DEBUG-APK
