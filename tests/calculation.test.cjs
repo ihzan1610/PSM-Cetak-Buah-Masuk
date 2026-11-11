@@ -1,4 +1,5 @@
 const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');
-function calc(w1,w2,p,fl,fj,fp){const n1=Math.round(w1-w2),srt=n1*.03,n2=n1-srt,kotor=Math.round(n2*p),jalan=Math.round(n2*fj),langsir=Math.round(n1*fl),panen=Math.round(n1*fp);return {n1,srt,n2,kotor,jalan,langsir,panen,bersih:kotor-jalan-langsir-panen};}
-test('perhitungan 3 persen dan potongan berbasis netto sesuai rumus yang ditetapkan',()=>assert.deepEqual(calc(10000,2000,3000,10,20,5),{n1:8000,srt:240,n2:7760,kotor:23280000,jalan:155200,langsir:80000,panen:40000,bersih:23004800}));
-test('aplikasi tidak menggunakan penyimpanan transaksi atau cloud',()=>{const s=fs.readFileSync('www/app.js','utf8');assert.doesNotMatch(s,/localStorage|sessionStorage|indexedDB|fetch\s*\(/i);});
+function calc(w1,w2,p,fl,fj,fp){const n1=Math.round(w1-w2),srt=n1*.03,n2=n1-srt,kotor=Math.round(n2*p),tL=Math.round(n1*fl),tP=Math.round(n1*fp),tJ=Math.round(n2*fj);return {n1,srt,n2,kotor,tL,tP,tJ,bersih:kotor-(tL+tP+tJ)};}
+test('rumus sama dengan hitungTransaksi Admin v1.44.2',()=>assert.deepEqual(calc(10000,2000,3000,10,20,5),{n1:8000,srt:240,n2:7760,kotor:23280000,tL:80000,tP:40000,tJ:155200,bersih:23004800}));
+test('tidak ada penyimpanan transaksi atau cloud',()=>{const s=fs.readFileSync('www/app.js','utf8');assert.doesNotMatch(s,/localStorage|sessionStorage|indexedDB|fetch\\s*\\(/i);});
+test('jalur cetak memakai native RawBT bridge',()=>{const s=fs.readFileSync('www/app.js','utf8');assert.match(s,/AndroidRawBT/);});
