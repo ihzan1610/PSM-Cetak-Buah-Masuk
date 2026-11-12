@@ -27,7 +27,7 @@ public class RawBTBridge {
  RawBTBridge(Activity a) { activity=a; }
  private String result(boolean ok,String message) {
   try { JSONObject json=new JSONObject(); json.put("ok",ok); json.put("message",message); return json.toString(); }
-  catch(Exception ignored) { return "{\\\"ok\\\":"+ok+",\\\"message\\\":\\\""+message.replace("\\\"","'")+"\\\"}"; }
+  catch(Exception ignored) { return "{\\"ok\\":"+ok+",\\"message\\":\\""+message.replace("\\\"","'")+"\\"}"; }
  }
  @JavascriptInterface public String print(String text) {
   try {
@@ -36,16 +36,19 @@ public class RawBTBridge {
    Intent intent=new Intent(Intent.ACTION_VIEW, Uri.parse("rawbt:base64,"+Base64.encodeToString(text.getBytes(Charset.forName("CP437")),Base64.NO_WRAP)));
    intent.setPackage(RAWBT_PACKAGE);
    intent.addCategory(Intent.CATEGORY_DEFAULT);
-   if(intent.resolveActivity(pm)==null) return result(false,"RawBT tidak ditemukan. Pasang dan buka RawBT terlebih dahulu.");
-   activity.runOnUiThread(() -> {
-    try { activity.startActivity(intent); }
-    catch(Exception e) { android.util.Log.e("PSMRawBT","Gagal membuka RawBT",e); }
-   });
-   return result(true,"Perintah diteruskan ke aplikasi RawBT. Pastikan printer terhubung.");
+   if(intent.resolveActivity(pm)==null) return result(false,"Aplikasi RawBT tidak terdeteksi. Pastikan RawBT terpasang, lalu buka sekali.");
+   activity.startActivity(intent);
+   return result(true,"Perintah cetak diteruskan ke RawBT.");
   } catch(Exception e) {
    String message=e.getMessage()==null?"Kesalahan tidak diketahui":e.getMessage();
    return result(false,message);
   }
  }
 }`);
-console.log('RawBT native bridge generated');
+const manifest=path.join('android','app','src','main','AndroidManifest.xml');
+let xml=fs.readFileSync(manifest,'utf8');
+if(!xml.includes('ru.a402d.rawbtprinter')) {
+ xml=xml.replace(/<manifest\\b[^>]*>/,m=>m+'\\n    <queries><package android:name="ru.a402d.rawbtprinter" /></queries>');
+ fs.writeFileSync(manifest,xml);
+}
+console.log('RawBT native bridge and Android package visibility configured');
