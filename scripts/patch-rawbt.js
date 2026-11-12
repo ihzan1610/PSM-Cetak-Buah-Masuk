@@ -32,7 +32,7 @@ let xml=fs.readFileSync(manifest,'utf8');
 if(!xml.includes('ru.a402d.rawbtprinter')) {
  const end=xml.indexOf('>');
  if(end<0)throw new Error('Tag manifest tidak ditemukan');
- xml=xml.slice(0,end+1)+'\\n    <queries><package android:name="ru.a402d.rawbtprinter" /></queries>'+xml.slice(end+1);
+ xml=xml.slice(0,end+1)+String.fromCharCode(10)+'    <queries><package android:name="ru.a402d.rawbtprinter" /></queries>'+xml.slice(end+1);
  fs.writeFileSync(manifest,xml);
 }
 console.log('RawBT bridge and package visibility configured');
