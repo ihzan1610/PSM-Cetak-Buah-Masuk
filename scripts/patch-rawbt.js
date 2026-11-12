@@ -30,7 +30,8 @@ public class RawBTBridge {
 const manifest=path.join('android','app','src','main','AndroidManifest.xml');
 let xml=fs.readFileSync(manifest,'utf8');
 if(!xml.includes('ru.a402d.rawbtprinter')) {
- const start=xml.indexOf('<manifest');\n const end=xml.indexOf('>',start);
+ const start=xml.indexOf('<manifest');
+ const end=xml.indexOf('>',start);
  if(end<0)throw new Error('Tag manifest tidak ditemukan');
  xml=xml.slice(0,end+1)+String.fromCharCode(10)+'    <queries><package android:name="ru.a402d.rawbtprinter" /></queries>'+xml.slice(end+1);
  fs.writeFileSync(manifest,xml);
