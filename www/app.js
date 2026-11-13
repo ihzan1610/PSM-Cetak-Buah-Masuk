@@ -16,7 +16,7 @@ function left(t,font='22px monospace'){ctx.font=font;ctx.textAlign='left';ctx.fi
 function pair(label,value,bold=false){ctx.font=(bold?'bold ':'')+'22px monospace';ctx.textAlign='left';ctx.fillText(label,margin,y);ctx.textAlign='right';ctx.fillText(value,W-margin,y);y+=rowH;}
 center('STRUK PENIMBANGAN');rule('=');
 left('Pemilik : '+d.owner);left('Sopir   : '+d.driver);left('Tanggal : '+when.date);rule('-','20px monospace');
-rows.forEach((r,i)=>pair(r[0],r[1],i===5));rule('-','20px monospace');left('* BIAYA OPERASIONAL:');ops.forEach(r=>pair(r[0],r[1]));y+=16;pair('### TOTAL BERSIH :','Rp '+fmt(d.bersih),true);rule('=');center('Ditimbang oleh :','22px monospace');y+=rowH*3;center('Asri','bold 24px monospace');c.height=y+35;ctx.fillStyle='#fff';ctx.fillRect(0,y-2,W,37);ctx.fillStyle='#000';ctx.textBaseline='middle';ctx.font='bold 24px monospace';ctx.textAlign='center';ctx.fillText('Asri',W/2,y+12);return c;}
+rows.forEach((r,i)=>pair(r[0],r[1],i===5));rule('-','20px monospace');left('* BIAYA OPERASIONAL:');ops.forEach(r=>pair(r[0],r[1]));y+=16;pair('### TOTAL BERSIH :','Rp '+fmt(d.bersih),true);rule('=');center('Ditimbang oleh :','22px monospace');y+=rowH*3;center('Asri','bold 24px monospace');return c;}
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3000);}
 function loadLogo(){logoImg=new Image();logoImg.onload=()=>{if(active)makeReceipt(active.d,active.when);};logoImg.src=LOGO;}
 INPUTS.forEach(id=>$(id).addEventListener('input',render));render();loadLogo();
