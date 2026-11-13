@@ -1,65 +1,25 @@
 'use strict';
-const $ = id => document.getElementById(id);
-const fmt = n => Math.round(n || 0).toLocaleString('id-ID');
-const rupiah = n => 'Rp ' + fmt(n);
-const INPUTS = ['owner','driver','w1','w2','price','fj','fl','fp'];
-function readNumber(id) { const raw=$(id).value.trim(); return raw===''?0:Number(raw); }
-function calculate() {
- const w1=readNumber('w1'),w2=readNumber('w2'),n1=Math.round(w1-w2),srt=n1*0.03,n2=n1-srt;
- const price=readNumber('price'),fj=readNumber('fj'),fl=readNumber('fl'),fp=readNumber('fp');
- const kotor=Math.round(n2*price),jalan=Math.round(n2*fj),langsir=Math.round(n1*fl),panen=Math.round(n1*fp);
- return {w1,w2,n1,srt,n2,price,fj,fl,fp,kotor,jalan,langsir,panen,bersih:kotor-jalan-langsir-panen,owner:$('owner').value.trim().toUpperCase(),driver:$('driver').value.trim().toUpperCase()};
-}
-function valid(d) {
- if(!d.owner||!d.driver)return 'Pemilik dan Supir wajib diisi.';
- if(!Number.isFinite(d.w1)||!Number.isFinite(d.w2)||d.w1<=0||d.w2<0||d.w1<=d.w2)return 'T1 harus lebih besar dari T2.';
- if(!Number.isFinite(d.price)||d.price<=0)return 'Harga per kg wajib lebih dari nol.';
- for(const k of ['fj','fl','fp'])if(!Number.isFinite(d[k])||d[k]<0)return 'Biaya Jalan, Langsir, dan Panen tidak boleh negatif.';
- if([d.kotor,d.jalan,d.langsir,d.panen,d.bersih,d.n1,d.n2].some(x=>!Number.isFinite(x)))return 'Angka tidak valid.';
- return '';
-}
-function render() {
- const d=calculate(),rows=[['Nett',fmt(d.n1)+' Kg'],['Potongan 3%',fmt(d.srt)+' Kg'],['Nett setelah 3%',fmt(d.n2)+' Kg'],['Harga / Kg',rupiah(d.price)],['Kotor',rupiah(d.kotor)],['Biaya Jalan',rupiah(d.jalan)],['Biaya Langsir',rupiah(d.langsir)],['Biaya Panen',rupiah(d.panen)],['Total Bersih',rupiah(d.bersih)]];
- $('results').innerHTML=rows.map((r,i)=>'<div class="line '+(i===8?'total':'')+'"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');
-}
-let active=null;
-function stamp(){const d=new Date();return {date:d.toLocaleDateString('id-ID'),time:d.toLocaleTimeString('id-ID',{hour12:false})};}
-function pair(label,value,width=32){label=String(label);value=String(value);return label+' '.repeat(Math.max(1,width-label.length-value.length))+value;}
-function receiptPreview(d,when) {
- return [
- '          NOTA TIMBANGAN','================================',
- 'Pemilik : '+d.owner,'Supir   : '+d.driver,'Tanggal : '+when.date,'Waktu   : '+when.time,
- '--------------------------------',pair('T1 / Bruto',fmt(d.w1)),pair('T2 / Tara',fmt(d.w2)),
- pair('Nett',fmt(d.n1)+' Kg'),pair('Potongan 3%',fmt(d.srt)+' Kg'),
- pair('Nett setelah 3%',fmt(d.n2)+' Kg'),pair('Harga / Kg',rupiah(d.price)),
- pair('KOTOR',rupiah(d.kotor)),'--------------------------------','POTONGAN:',
- pair('Jalan ('+fmt(d.fj)+'/Kg)','- '+rupiah(d.jalan)),
- pair('Langsir ('+fmt(d.fl)+'/Kg)','- '+rupiah(d.langsir)),
- pair('Panen ('+fmt(d.fp)+'/Kg)','- '+rupiah(d.panen)),
- '--------------------------------',pair('TOTAL BERSIH',rupiah(d.bersih)),
- '================================','       Terima kasih','','',''
- ].join('\n');
-}
-function thermal(d,when) {
- const ESC='\x1B',lines=[
- ESC+'@'+ESC+'a'+String.fromCharCode(1)+ESC+'E'+String.fromCharCode(1)+'NOTA TIMBANGAN'+ESC+'E'+String.fromCharCode(0),
- ESC+'a'+String.fromCharCode(0)+'================================',
- 'Pemilik : '+d.owner,'Supir   : '+d.driver,'Tanggal : '+when.date,'Waktu   : '+when.time,
- '--------------------------------',pair('T1 / Bruto',fmt(d.w1)),pair('T2 / Tara',fmt(d.w2)),
- pair('Nett',fmt(d.n1)+' Kg'),pair('Potongan 3%',fmt(d.srt)+' Kg'),
- pair('Nett setelah 3%',fmt(d.n2)+' Kg'),pair('Harga / Kg',rupiah(d.price)),
- ESC+'E'+String.fromCharCode(1)+pair('KOTOR',rupiah(d.kotor))+ESC+'E'+String.fromCharCode(0),
- '--------------------------------','POTONGAN:',
- pair('Jalan ('+fmt(d.fj)+'/Kg)','- '+rupiah(d.jalan)),
- pair('Langsir ('+fmt(d.fl)+'/Kg)','- '+rupiah(d.langsir)),
- pair('Panen ('+fmt(d.fp)+'/Kg)','- '+rupiah(d.panen)),
- '--------------------------------',ESC+'E'+String.fromCharCode(1)+pair('TOTAL BERSIH',rupiah(d.bersih))+ESC+'E'+String.fromCharCode(0),
- '================================',ESC+'a'+String.fromCharCode(1)+'Terima kasih'+ESC+'a'+String.fromCharCode(0)+'\n\n\n'
- ];
- return lines.join('\n');
-}
-function toast(message){$('toast').textContent=message;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3000);}
-INPUTS.forEach(id=>$(id).addEventListener('input',render));render();
-$('preview').onclick=()=>{const d=calculate(),problem=valid(d);if(problem){toast(problem);return;}active={d,when:stamp()};$('receipt').textContent=receiptPreview(d,active.when);$('previewBox').classList.remove('hidden');$('previewBox').scrollIntoView({behavior:'smooth'});};
-$('print').onclick=()=>{if(!active){toast('Buat pratinjau nota terlebih dahulu.');return;}const bridge=window.AndroidRawBT;if(!bridge||typeof bridge.print!=='function'){toast('Jembatan cetak tidak aktif. Tutup dan buka ulang APK terbaru.');return;}try{const response=JSON.parse(bridge.print(thermal(active.d,active.when)));toast(response.ok?'Perintah diteruskan ke RawBT. Periksa printer.':'RawBT: '+(response.message||'Tidak dapat membuka RawBT.'));}catch(error){toast('Gagal mengirim ke RawBT: '+error.message);}};
-$('clear').onclick=()=>{INPUTS.forEach(id=>$(id).value='');active=null;$('previewBox').classList.add('hidden');$('receipt').textContent='';render();window.scrollTo({top:0,behavior:'smooth'});};
+const $=id=>document.getElementById(id),fmt=n=>Math.round(n||0).toLocaleString('id-ID'),rp=n=>'Rp '+fmt(n);
+const INPUTS=['owner','driver','w1','w2','price','fj','fl','fp'];
+const LOGO='data:image/jpeg;base64,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';
+function num(id){const s=$(id).value.trim();return s===''?0:Number(s);}
+function calculate(){const w1=num('w1'),w2=num('w2'),n1=Math.round(w1-w2),srt=n1*.03,n2=n1-srt,price=num('price'),fj=num('fj'),fl=num('fl'),fp=num('fp'),kotor=Math.round(n2*price),jalan=Math.round(n2*fj),langsir=Math.round(n1*fl),panen=Math.round(n1*fp);return{w1,w2,n1,srt,n2,price,fj,fl,fp,kotor,jalan,langsir,panen,bersih:kotor-jalan-langsir-panen,owner:$('owner').value.trim().toUpperCase(),driver:$('driver').value.trim().toUpperCase()};}
+function valid(d){if(!d.owner||!d.driver)return'Pemilik dan Supir wajib diisi.';if(!Number.isFinite(d.w1)||!Number.isFinite(d.w2)||d.w1<=0||d.w2<0||d.w1<=d.w2)return'T1 harus lebih besar dari T2.';if(!Number.isFinite(d.price)||d.price<=0)return'Harga per kg wajib lebih dari nol.';for(const k of['fj','fl','fp'])if(!Number.isFinite(d[k])||d[k]<0)return'Biaya Jalan, Langsir, dan Panen tidak boleh negatif.';return'';}
+function render(){const d=calculate(),rows=[['Nett',fmt(d.n1)+' Kg'],['Potongan 3%',fmt(d.srt)+' Kg'],['Nett setelah 3%',fmt(d.n2)+' Kg'],['Harga / Kg',rp(d.price)],['Kotor',rp(d.kotor)],['Biaya Jalan',rp(d.jalan)],['Biaya Langsir',rp(d.langsir)],['Biaya Panen',rp(d.panen)],['Total Bersih',rp(d.bersih)]];$('results').innerHTML=rows.map((r,i)=>'<div class="line '+(i===8?'total':'')+'"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');}
+let active=null,logoImg=null;
+function stamp(){const d=new Date(),z=n=>String(n).padStart(2,'0');return{date:z(d.getDate())+'-'+z(d.getMonth()+1)+'-'+d.getFullYear(),time:z(d.getHours())+'.'+z(d.getMinutes())+'.'+z(d.getSeconds())};}
+function makeReceipt(d,when){const c=$('receiptCanvas'),ctx=c.getContext('2d'),W=576,margin=18,rowH=39;const rows=[['Bruto',fmt(d.w1)],['Tara',fmt(d.w2)],['Nett',fmt(d.n1)],['Sortasi (-3%)',Number(d.n2.toFixed(2)).toString()],['Harga / kg','x '+fmt(d.price)],['SUBTOTAL',rp(d.kotor)]];const ops=[['* Jalan ('+fmt(d.fj)+')','-Rp '+fmt(d.jalan)],['* Langsir ('+fmt(d.fl)+')','-Rp '+fmt(d.langsir)],['* Panen ('+fmt(d.fp)+')','-Rp '+fmt(d.panen)]];const H=150+rowH*5+48+rowH*6+48+rowH*3+58+rowH*5+45;c.width=W;c.height=H;ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#000';ctx.textBaseline='middle';let y=28;
+if(logoImg&&logoImg.complete){const lw=300,lh=97;ctx.drawImage(logoImg,(W-lw)/2,y,lw,lh);y+=lh+26;}
+function center(t,font='bold 23px monospace'){ctx.font=font;ctx.textAlign='center';ctx.fillText(t,W/2,y);y+=rowH;}
+function rule(ch='=',font='bold 21px monospace'){ctx.font=font;ctx.textAlign='left';ctx.fillText(ch.repeat(ch==='='?32:32),margin,y);y+=rowH*.72;}
+function left(t,font='22px monospace'){ctx.font=font;ctx.textAlign='left';ctx.fillText(t,margin,y);y+=rowH;}
+function pair(label,value,bold=false){ctx.font=(bold?'bold ':'')+'22px monospace';ctx.textAlign='left';ctx.fillText(label,margin,y);ctx.textAlign='right';ctx.fillText(value,W-margin,y);y+=rowH;}
+center('STRUK PENIMBANGAN');rule('=');
+left('Pemilik : '+d.owner);left('Sopir   : '+d.driver);left('Tanggal : '+when.date);rule('-','20px monospace');
+rows.forEach((r,i)=>pair(r[0],r[1],i===5));rule('-','20px monospace');left('* BIAYA OPERASIONAL:');ops.forEach(r=>pair(r[0],r[1]));y+=16;pair('### TOTAL BERSIH :','Rp '+fmt(d.bersih),true);rule('=');center('Ditimbang oleh :','22px monospace');y+=rowH*3;center('Asri','bold 24px monospace');c.height=y+35;ctx.fillStyle='#fff';ctx.fillRect(0,y-2,W,37);ctx.fillStyle='#000';ctx.textBaseline='middle';ctx.font='bold 24px monospace';ctx.textAlign='center';ctx.fillText('Asri',W/2,y+12);return c;}
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3000);}
+function loadLogo(){logoImg=new Image();logoImg.onload=()=>{if(active)makeReceipt(active.d,active.when);};logoImg.src=LOGO;}
+INPUTS.forEach(id=>$(id).addEventListener('input',render));render();loadLogo();
+$('preview').onclick=()=>{const d=calculate(),e=valid(d);if(e){toast(e);return;}active={d,when:stamp()};makeReceipt(d,active.when);$('receiptCanvas').classList.remove('hidden');$('previewBox').classList.remove('hidden');$('previewBox').scrollIntoView({behavior:'smooth'});};
+$('print').onclick=()=>{if(!active){toast('Buat pratinjau nota terlebih dahulu.');return;}const bridge=window.AndroidRawBT;if(!bridge||typeof bridge.printImage!=='function'){toast('Jembatan cetak tidak aktif. Instal APK terbaru dan buka ulang.');return;}try{const base64=$('receiptCanvas').toDataURL('image/png').split(',')[1],r=JSON.parse(bridge.printImage(base64));toast(r.ok?'Nota gambar dikirim ke RawBT. Periksa hasil cetak.':'RawBT: '+r.message);}catch(e){toast('Gagal mengirim gambar ke RawBT: '+e.message);}};
+$('clear').onclick=()=>{INPUTS.forEach(id=>$(id).value='');active=null;$('receiptCanvas').classList.add('hidden');$('previewBox').classList.add('hidden');render();window.scrollTo({top:0,behavior:'smooth'});};
